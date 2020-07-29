@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import styled from 'styled-components'
 
 import sprites from './assets/img/sprites.png'
+import hitFile from './assets/effects/hit.wav'
 
 const Canvas = styled.canvas`
   border: 1px solid #000;
@@ -14,34 +15,55 @@ export default function Error404() {
   let chao = null
   let planoDeFundo = null
   let mensagemGetReady = null
+  const globais = {}
+  const som_hit = new Audio()
+  som_hit.src = hitFile
   const img = new Image()
   img.src = sprites
   let ctx = null
 
+  function fazColisao(obj1, obj2) {
+    return (obj1.y + obj1.altura) >= obj2.y
+  }
+
   function loadContext(c) {
     if (c) {
       ctx = c.getContext('2d')
-      flappyBird = {
-        spriteX: 0,
-        spriteY:0,
-        largura: 33,
-        altura: 24,
-        x: 10,
-        y: 50,
-        velocidade: 0,
-        gravidade: 0.25,
-        atualiza() {
-          flappyBird.velocidade = flappyBird.velocidade + flappyBird.gravidade
-          flappyBird.y = flappyBird.y + flappyBird.velocidade
-        },
-        desenha() {
-          ctx.drawImage(
-            img,
-            flappyBird.spriteX, flappyBird.spriteY, //SpriteX, SpriteY
-            flappyBird.largura, flappyBird.altura, // Tamanho do recorte na sprite x e y
-            flappyBird.x, flappyBird.y,
-            flappyBird.largura, flappyBird.altura
-          )
+
+      function criaFlappyBird() {
+        return {
+          spriteX: 0,
+          spriteY:0,
+          largura: 33,
+          altura: 24,
+          x: 10,
+          y: 50,
+          pulo: 4.6,
+          pula() {
+            globais.flappyBird.velocidade = - globais.flappyBird.pulo
+          },
+          velocidade: 0,
+          gravidade: 0.25,
+          atualiza() {
+            if (!fazColisao(globais.flappyBird, chao)) {
+              globais.flappyBird.velocidade = globais.flappyBird.velocidade + globais.flappyBird.gravidade
+              globais.flappyBird.y = globais.flappyBird.y + globais.flappyBird.velocidade
+            } else {
+              som_hit.play()
+              setTimeout(
+                mudaParaTela(telas.INICIO)
+              , 500)
+            }
+          },
+          desenha() {
+            ctx.drawImage(
+              img,
+              globais.flappyBird.spriteX, globais.flappyBird.spriteY, //SpriteX, SpriteY
+              globais.flappyBird.largura, globais.flappyBird.altura, // Tamanho do recorte na sprite x e y
+              globais.flappyBird.x, globais.flappyBird.y,
+              globais.flappyBird.largura, globais.flappyBird.altura
+            )
+          }
         }
       }
 
@@ -121,13 +143,19 @@ export default function Error404() {
       let telaAtiva = {}
       function mudaParaTela(novaTela) {
         telaAtiva = novaTela
+        if (telaAtiva.inicializa) {
+          telaAtiva.inicializa()
+        }
       }
       const telas = {
         INICIO: {
+          inicializa() {
+            globais.flappyBird = criaFlappyBird()
+          },
           desenha() {
             planoDeFundo.desenha()
             chao.desenha()
-            flappyBird.desenha()
+            globais.flappyBird.desenha()
             mensagemGetReady.desenha()
           },
           atualiza() {
@@ -142,10 +170,13 @@ export default function Error404() {
           desenha() {
             planoDeFundo.desenha()
             chao.desenha()
-            flappyBird.desenha()
+            globais.flappyBird.desenha()
           },
           atualiza() {
-            flappyBird.atualiza()
+            globais.flappyBird.atualiza()
+          },
+          click() {
+            globais.flappyBird.pula()
           }
         }
       }
