@@ -55,7 +55,7 @@ export default function Error404() {
             } else {
               som_hit.play()
               setTimeout(
-                mudaParaTela(telas.INICIO)
+                mudaParaTela(telas.GAMEOVER)
               , 500)
             }
           },
@@ -202,7 +202,7 @@ export default function Error404() {
 
               if (globais.canos.temColisaoComOFlappyBird(par)) {
                 som_hit.play()
-                mudaParaTela(telas.INICIO)
+                mudaParaTela(telas.GAMEOVER)
               }
 
               if (par.x + globais.canos.largura <= 0) {
@@ -246,7 +246,7 @@ export default function Error404() {
         w: 174,
         h: 152,
         x: (c.width / 2) - 174 / 2,
-        y: 50,
+        y: (c.height / 2) - 152 / 2,
         desenha() {
           ctx.drawImage(
             img,
@@ -263,8 +263,8 @@ export default function Error404() {
         sY: 197,
         w: 226,
         h: 116,
-        x: 45,
-        y: 230,
+        x: (c.width / 2) - 113,
+        y: 170,
         desenha() {
           ctx.drawImage(
             img,
@@ -272,6 +272,42 @@ export default function Error404() {
             scoreBoard.w, scoreBoard.h, // Tamanho do recorte na sprite x e y
             scoreBoard.x, scoreBoard.y,
             scoreBoard.w, scoreBoard.h
+          )
+        }
+      }
+
+      let startButton = {
+        sX: 206,
+        sY: 325,
+        w: 82,
+        h: 28,
+        x: (c.width / 2) - 41,
+        y: 300,
+        desenha() {
+          ctx.drawImage(
+            img,
+            startButton.sX, startButton.sY, //SpriteX, SpriteY
+            startButton.w, startButton.h, // Tamanho do recorte na sprite x e y
+            startButton.x, startButton.y,
+            startButton.w, startButton.h
+          )
+        }
+      }
+
+      let gameOver = {
+        sX: 152,
+        sY: 153,
+        w: 189,
+        h: 37,
+        x: (c.width / 2) - 94.5,
+        y: 120,
+        desenha() {
+          ctx.drawImage(
+            img,
+            gameOver.sX, gameOver.sY, //SpriteX, SpriteY
+            gameOver.w, gameOver.h, // Tamanho do recorte na sprite x e y
+            gameOver.x, gameOver.y,
+            gameOver.w, gameOver.h
           )
         }
       }
@@ -297,7 +333,6 @@ export default function Error404() {
             planoDeFundo.desenha()
             globais.flappyBird.desenha()
             globais.chao.desenha()
-            // scoreBoard.desenha()
             mensagemGetReady.desenha()
           },
           atualiza() {
@@ -308,7 +343,23 @@ export default function Error404() {
           }
         },
 
+        GAMEOVER: {
+          desenha() {
+            scoreBoard.desenha()
+            startButton.desenha()
+            gameOver.desenha()
+          },
+          click() {
+            mudaParaTela(telas.JOGO)
+          }
+        },
+
         JOGO: {
+          inicializa() {
+            globais.flappyBird = criaFlappyBird()
+            globais.chao = criaChao()
+            globais.canos = criaCanos()
+          },
           desenha() {
             planoDeFundo.desenha()
             globais.canos.desenha()
@@ -327,7 +378,9 @@ export default function Error404() {
       }
 
       function loop() {
-        telaAtiva.atualiza()
+        if (telaAtiva.atualiza) {
+          telaAtiva.atualiza()
+        }
         telaAtiva.desenha()
         frames++
         requestAnimationFrame(loop)
